@@ -72,10 +72,10 @@ export function Header() {
     const headerBg = scrolled
         ? 'bg-white/95 backdrop-blur-xl shadow-lg shadow-slate-900/5 border-b border-slate-100'
         : isHomePage
-            ? 'bg-transparent'
+            ? 'bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-transparent backdrop-blur-sm'
             : 'bg-white/95 backdrop-blur-xl border-b border-slate-100';
 
-    const textColor = scrolled || !isHomePage ? 'text-slate-700' : 'text-white/90';
+    const textColor = scrolled || !isHomePage ? 'text-slate-700' : 'text-white drop-shadow-lg';
     const logoColor = scrolled || !isHomePage ? 'text-slate-900' : 'text-white';
     const hoverColor = 'hover:text-blue-600';
 
