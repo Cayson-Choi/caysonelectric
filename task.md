@@ -52,7 +52,7 @@
     - [x] 수강신청 폼 구현 (Schedule Page Modal) <!-- id: 16 -->
     - [x] 문의하기 폼 구현 (Contact Page) <!-- id: 17 -->
     - [x] 신청 데이터 Supabase `applications` / `leads` 테이블 저장 로직 <!-- id: 18 -->
-    - [ ] 통장 입금 안내 페이지 구현 <!-- id: 19 -->
+    - [x] 통장 입금 안내 페이지 구현 <!-- id: 19 -->
 - [ ] **Phase 2: 회원 시스템 (Auth)** <!-- id: 20 -->
     - [ ] Supabase Auth 설정 <!-- id: 21 -->
     - [ ] 로그인/회원가입 페이지 <!-- id: 22 -->
