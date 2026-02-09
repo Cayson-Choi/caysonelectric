@@ -13,5 +13,5 @@ export async function GET(request: NextRequest) {
     }
 
     // URL to redirect to after sign in process completes
-    return NextResponse.redirect(`${origin}/mypage`)
+    return NextResponse.redirect(`${origin}/mypage?message=${encodeURIComponent('이메일 확인이 완료되었습니다! 환영합니다.')}`)
 }

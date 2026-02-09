@@ -23,7 +23,14 @@ export async function login(formData: FormData) {
     const { error } = await supabase.auth.signInWithPassword(data)
 
     if (error) {
-        redirect('/login?error=Could not authenticate user')
+        // Provide user-friendly error messages
+        if (error.message.includes('Email not confirmed')) {
+            redirect('/login?error=' + encodeURIComponent('이메일 확인이 필요합니다. 받은 이메일의 확인 링크를 클릭해주세요.'))
+        } else if (error.message.includes('Invalid login credentials')) {
+            redirect('/login?error=' + encodeURIComponent('이메일 또는 비밀번호가 올바르지 않습니다.'))
+        } else {
+            redirect('/login?error=' + encodeURIComponent(error.message))
+        }
     }
 
     revalidatePath('/', 'layout')
@@ -84,7 +91,7 @@ export async function signup(formData: FormData) {
     }
 
     revalidatePath('/', 'layout')
-    redirect('/login?message=' + encodeURIComponent('회원가입이 완료되었습니다! 로그인해주세요.'))
+    redirect('/signup/check-email')
 }
 
 export async function updateProfile(formData: FormData) {

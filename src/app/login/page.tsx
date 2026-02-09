@@ -35,7 +35,14 @@ function LoginForm() {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-800">{error}</p>
+              <div className="text-sm text-red-800">
+                <p className="font-medium mb-1">{error}</p>
+                {error.includes('Email not confirmed') && (
+                  <p className="text-xs">
+                    이메일 확인이 필요합니다. 받은 이메일의 확인 링크를 클릭해주세요.
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
