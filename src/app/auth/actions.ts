@@ -33,24 +33,58 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
     const supabase = await createClient()
 
-    const data = {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+    const username = formData.get('username') as string
+    const fullname = formData.get('fullname') as string
+    const phone = formData.get('phone') as string
+    const zonecode = formData.get('zonecode') as string
+    const address = formData.get('address') as string
+    const detailAddress = formData.get('detailAddress') as string
+
+    const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
         options: {
             emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+            data: {
+                username,
+                full_name: fullname,
+                phone,
+                zonecode,
+                address,
+                detail_address: detailAddress,
+            }
+        }
+    })
+
+    if (signUpError) {
+        redirect('/signup?error=' + encodeURIComponent(signUpError.message))
+    }
+
+    // Create profile in profiles table if needed
+    if (authData.user) {
+        const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+                id: authData.user.id,
+                username,
+                full_name: fullname,
+                email,
+                phone,
+                zonecode,
+                address,
+                detail_address: detailAddress,
+            })
+
+        if (profileError) {
+            console.error('Profile creation error:', profileError)
+            // Continue anyway since auth succeeded
         }
     }
 
-    const { error } = await supabase.auth.signUp(data)
-
-    if (error) {
-        redirect('/signup?error=Could not authenticate user')
-    }
-
     revalidatePath('/', 'layout')
-    // For development: auto-login after signup if email confirmation is disabled
-    // For production: redirect to check email message
-    redirect('/login?message=Account created! Please log in.')
+    redirect('/login?message=' + encodeURIComponent('회원가입이 완료되었습니다! 로그인해주세요.'))
 }
 
 export async function updateProfile(formData: FormData) {

@@ -1,9 +1,17 @@
+'use client';
+
 import { login } from '../auth/actions'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Lock, Mail, ArrowRight } from 'lucide-react'
+import { Lock, Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams()
+  const message = searchParams.get('message')
+  const error = searchParams.get('error')
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
@@ -17,6 +25,20 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8">
+          {/* Success/Error Messages */}
+          {message && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
+              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-green-800">{message}</p>
+            </div>
+          )}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+          )}
+
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-slate-900 mb-2">로그인</h1>
@@ -92,5 +114,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }
