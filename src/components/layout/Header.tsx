@@ -1,28 +1,63 @@
 "use client";
 
 import Link from 'next/link';
-import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, User, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 const navigation = [
-    { name: '서비스', href: '/services' },
-    { name: '교육과정', href: '/education' },
-    { name: '일정/신청', href: '/schedule' },
+    { name: '회사소개', href: '/about' },
+    { name: '기술교육', href: '/education' },
+    { name: '교육신청', href: '/schedule' },
+    { name: '도서구입', href: '/services/publishing' },
     { name: '자료실', href: '/resources' },
     { name: '문의하기', href: '/contact' },
 ];
 
 export function Header() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [user, setUser] = useState<any>(null);
+    const supabase = createClient();
+    const router = useRouter();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        getUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+        router.push('/');
+        router.refresh();
+    };
 
     return (
         <header className="fixed inset-x-0 top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
             <nav className="flex items-center justify-between p-6 lg:px-8" aria-label="Global">
                 <div className="flex lg:flex-1">
                     <Link href="/" className="-m-1.5 p-1.5 text-2xl font-bold tracking-tight text-slate-900">
-                        Cayson<span className="text-blue-600">Electric</span>
+                        Cayson <span className="text-blue-600">Electric</span>
                     </Link>
                 </div>
                 <div className="flex lg:hidden">
@@ -43,9 +78,26 @@ export function Header() {
                     ))}
                 </div>
                 <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-                    <Link href="/login" className="text-sm font-semibold leading-6 text-gray-900">
-                        로그인 <span aria-hidden="true">&rarr;</span>
-                    </Link>
+                    {user ? (
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm text-slate-500 hidden xl:inline-block">
+                                {user.user_metadata?.full_name || user.email?.split('@')[0]}님
+                            </span>
+                            <Link href="/mypage" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
+                                마이페이지
+                            </Link>
+                            <button
+                                onClick={handleLogout}
+                                className="text-sm font-semibold leading-6 text-red-600 hover:text-red-700"
+                            >
+                                로그아웃
+                            </button>
+                        </div>
+                    ) : (
+                        <Link href="/login" className="text-sm font-semibold leading-6 text-gray-900">
+                            로그인 <span aria-hidden="true">&rarr;</span>
+                        </Link>
+                    )}
                 </div>
             </nav>
 
@@ -56,7 +108,7 @@ export function Header() {
                     <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
                         <div className="flex items-center justify-between">
                             <Link href="/" className="-m-1.5 p-1.5 text-2xl font-bold" onClick={() => setMobileMenuOpen(false)}>
-                                Cayson<span className="text-blue-600">Electric</span>
+                                Cayson <span className="text-blue-600">Electric</span>
                             </Link>
                             <button
                                 type="button"
@@ -82,13 +134,37 @@ export function Header() {
                                     ))}
                                 </div>
                                 <div className="py-6">
-                                    <Link
-                                        href="/login"
-                                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                    >
-                                        로그인
-                                    </Link>
+                                    {user ? (
+                                        <>
+                                            <div className="mb-4 px-3 text-sm text-gray-500">
+                                                {user.email}님 환영합니다.
+                                            </div>
+                                            <Link
+                                                href="/mypage"
+                                                className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                                                onClick={() => setMobileMenuOpen(false)}
+                                            >
+                                                마이페이지
+                                            </Link>
+                                            <button
+                                                onClick={() => {
+                                                    handleLogout();
+                                                    setMobileMenuOpen(false);
+                                                }}
+                                                className="-mx-3 block w-full text-left rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-red-600 hover:bg-gray-50"
+                                            >
+                                                로그아웃
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <Link
+                                            href="/login"
+                                            className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-gray-900 hover:bg-gray-50"
+                                            onClick={() => setMobileMenuOpen(false)}
+                                        >
+                                            로그인
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         </div>
