@@ -101,7 +101,7 @@ export function Header() {
                     <div className="hidden lg:flex lg:gap-x-1">
                         {navigation.map((item) => (
                             item.children ? (
-                                <div key={item.name} className="relative"
+                                <div key={item.name} className="relative group"
                                     onMouseEnter={() => setServiceDropdown(true)}
                                     onMouseLeave={() => setServiceDropdown(false)}
                                 >
@@ -110,16 +110,18 @@ export function Header() {
                                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${serviceDropdown ? 'rotate-180' : ''}`} />
                                     </button>
                                     {serviceDropdown && (
-                                        <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-xl shadow-xl shadow-slate-200/50 border border-slate-100 py-2 animate-slide-down">
-                                            {item.children.map((child) => (
-                                                <Link
-                                                    key={child.name}
-                                                    href={child.href}
-                                                    className="block px-4 py-2.5 text-sm text-slate-600 hover:text-blue-600 hover:bg-blue-50/50 transition-colors"
-                                                >
-                                                    {child.name}
-                                                </Link>
-                                            ))}
+                                        <div className="absolute top-full left-0 pt-2 w-56">
+                                            <div className="bg-slate-50/95 backdrop-blur-md rounded-xl shadow-2xl shadow-slate-300/60 border border-slate-200/80 py-2 animate-slide-down">
+                                                {item.children.map((child) => (
+                                                    <Link
+                                                        key={child.name}
+                                                        href={child.href}
+                                                        className="block px-4 py-2.5 text-sm text-slate-700 hover:text-blue-600 hover:bg-blue-100/60 transition-colors font-medium"
+                                                    >
+                                                        {child.name}
+                                                    </Link>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
