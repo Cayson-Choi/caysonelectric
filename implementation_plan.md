@@ -6,7 +6,7 @@
 ## 기술 스택 & 시스템 아키텍처
 - **Frontend**: Next.js 14+ (App Router), TypeScript, Tailwind CSS
 - **Database**: Supabase (PostgreSQL) - 교육 과정, 일정, 신청자 관리
-- **Forms**: Tally (신청 접수) + Webhook
+- **Forms**: React Hook Form + Zod (내부 폼) -> Supabase Direct Insert
 - **Deployment**: Vercel
 
 ## 사이트맵 (Sitemap)
@@ -61,7 +61,7 @@ DB 연동을 통해 동적으로 과정 및 일정을 표시:
 1. **메인 페이지**: 4대 핵심 서비스(PLC, 전력, 접지, KEC)를 카드 형태로 요약 노출
 2. **서비스 페이지**: 제공된 마크다운 내용을 바탕으로 각 서비스별 상세 설명 구현
 3. **교육 상세**: 커리큘럼, 일정, 교육 목표를 명확히 표시하고 '신청하기' 버튼 배치
-4. **신청 연동**: Tally 폼을 통해 신청 -> Webhook으로 DB 저장 -> 입금 안내 페이지로 리다이렉트
+4. **신청 연동**: 커스텀 Modal 폼을 통해 신청 -> Supabase DB 직접 저장 -> 신청 완료 메시지 및 상태 업데이트
 
 ### Phase 2: 회원 및 마이페이지
 - 이메일 로그인, 내 신청 현황 확인, 수료증 출력 등 확장
