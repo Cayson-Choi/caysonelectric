@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [address, setAddress] = useState('')
   const [zonecode, setZonecode] = useState('')
   const [addressError, setAddressError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleAddressSearch = () => {
     if (typeof window === 'undefined' || !window.daum) {
@@ -61,7 +62,13 @@ export default function SignupPage() {
       return
     }
 
-    await signup(formData)
+    try {
+      setIsSubmitting(true)
+      await signup(formData)
+    } catch (error) {
+      setIsSubmitting(false)
+      alert('회원가입 중 오류가 발생했습니다. 다시 시도해주세요.')
+    }
   }
 
   return (
@@ -261,10 +268,23 @@ export default function SignupPage() {
             {/* Signup Button */}
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2 mt-6"
+              disabled={isSubmitting}
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/25 transition-all duration-200 flex items-center justify-center gap-2 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              회원가입
-              <ArrowRight className="h-4 w-4" />
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  처리 중...
+                </>
+              ) : (
+                <>
+                  회원가입
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
             </Button>
           </form>
 
