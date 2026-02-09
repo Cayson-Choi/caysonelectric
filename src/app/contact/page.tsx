@@ -123,12 +123,10 @@ export default function ContactPage() {
                         궁금하신 점이 있으시면 언제든 문의해주세요. 빠르고 정확하게 답변 드리겠습니다.
                     </p>
                 </div>
-                {/* Bottom gradient fade */}
-                <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-50 to-transparent" />
             </section>
 
             {/* Contact Info + Form Section */}
-            <section className="py-16 -mt-12 relative z-10">
+            <section className="py-16 bg-slate-50">
                 <div className="container mx-auto px-6 max-w-7xl">
                     <div className="grid lg:grid-cols-5 gap-8">
 
