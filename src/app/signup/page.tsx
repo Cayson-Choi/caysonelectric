@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { signup } from '../auth/actions'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { UserPlus, Mail, Lock, ArrowRight, User, Phone, MapPin, Search } from 'lucide-react'
+import { UserPlus, Mail, Lock, ArrowRight, User, Phone, MapPin, Search, AlertCircle } from 'lucide-react'
 import Script from 'next/script'
+import { useSearchParams } from 'next/navigation'
 
 declare global {
   interface Window {
@@ -14,6 +15,9 @@ declare global {
 }
 
 export default function SignupPage() {
+  const searchParams = useSearchParams()
+  const errorMessage = searchParams.get('error')
+
   const [address, setAddress] = useState('')
   const [zonecode, setZonecode] = useState('')
   const [addressError, setAddressError] = useState('')
@@ -97,6 +101,17 @@ export default function SignupPage() {
             <h1 className="text-2xl font-bold text-slate-900 mb-2">회원가입</h1>
             <p className="text-sm text-slate-500">Cayson Electric에 가입하고 다양한 서비스를 이용하세요</p>
           </div>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-800 mb-1">회원가입 실패</p>
+                <p className="text-xs text-red-700">{errorMessage}</p>
+              </div>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
