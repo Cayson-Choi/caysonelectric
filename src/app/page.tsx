@@ -239,7 +239,7 @@ export default function Home() {
           style={{ transform: `translateY(${scrollY * 0.35}px)` }}
         >
           <img
-            src="/mainpicture.png"
+            src="/mainpicture.png?v=2"
             alt="Cayson Electric - 전기 엔지니어링 교육 및 컨설팅"
             className="h-[120%] w-full object-cover"
           />

@@ -84,7 +84,7 @@ export function Header() {
             ? 'bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-transparent backdrop-blur-sm'
             : 'bg-white/95 backdrop-blur-xl border-b border-slate-100';
 
-    const textColor = scrolled || !isHomePage ? 'text-slate-700' : 'text-white drop-shadow-lg';
+    const textColor = scrolled || !isHomePage ? 'text-slate-700' : 'text-white drop-shadow-md';
     const logoColor = scrolled || !isHomePage ? 'text-slate-900' : 'text-white';
     const hoverColor = 'hover:text-blue-600';
 
@@ -100,8 +100,8 @@ export function Header() {
                                     <span className="text-white font-black text-lg">C</span>
                                 </div>
                             </div>
-                            <span className={`text-xl font-bold tracking-tight ml-2 transition-colors ${logoColor}`}>
-                                Cayson <span className="text-blue-600">Electric</span>
+                            <span className={`text-xl font-bold tracking-tight ml-2 transition-colors ${logoColor} drop-shadow-md`}>
+                                Cayson <span className="text-blue-500 drop-shadow-none">Electric</span>
                             </span>
                         </Link>
                     </div>
