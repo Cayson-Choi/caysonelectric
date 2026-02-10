@@ -5,22 +5,22 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { MapPin, Phone, Mail, Clock, Send, Search, Trash2, Edit, Lock } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Send, Search, Trash2, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 // Form Schema
 const formSchema = z.object({
     name: z.string().min(2, "이름을 입력해주세요."),
     phone: z.string().min(10, "연락처를 정확히 입력해주세요."),
-    email: z.string().email("올바른 이메일 주소를 입력해주세요."),
-    password: z.string().min(4, "비밀번호는 4자리 이상이어야 합니다."), // Added password
+    email: z.string().email({ message: "올바른 이메일 주소를 입력해주세요." }),
+    password: z.string().min(4, "비밀번호는 4자리 이상이어야 합니다."),
     message: z.string().min(10, "문의 내용을 10자 이상 작성해주세요."),
 });
 
 // Search Schema
 const searchSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(1),
+    email: z.string().email({ message: "올바른 이메일 주소를 입력해주세요." }),
+    password: z.string().min(1, "비밀번호를 입력해주세요."),
 });
 
 export default function ContactPage() {
