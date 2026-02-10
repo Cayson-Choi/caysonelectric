@@ -1,9 +1,23 @@
--- Truncate all tables to clear data
-truncate table applications restart identity cascade;
-truncate table book_orders restart identity cascade;
-truncate table leads restart identity cascade;
-truncate table posts restart identity cascade;
+-- ============================================================================
+-- Database Reset Script
+-- ============================================================================
+-- WARNING: This script will DROP all tables and data!
+-- Use this only for development/testing purposes.
+-- ============================================================================
 
--- Optional: If you want to delete users (requires more permission usually, but for record)
--- delete from auth.users; -- This usually requires admin rights not always available via SQL editor in all contexts without caution. 
--- We will stick to app data.
+-- Drop all tables in correct order (respecting foreign key dependencies)
+DROP TABLE IF EXISTS book_orders CASCADE;
+DROP TABLE IF EXISTS applications CASCADE;
+DROP TABLE IF EXISTS course_sessions CASCADE;
+DROP TABLE IF EXISTS courses CASCADE;
+DROP TABLE IF EXISTS posts CASCADE;
+DROP TABLE IF EXISTS leads CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+
+-- Drop trigger function
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+
+-- ============================================================================
+-- After running this script, execute the unified schema:
+-- Run: db/migrations/000_unified_schema.sql
+-- ============================================================================
