@@ -23,6 +23,17 @@
 # misc
 .DS_Store
 *.pem
+thumbs.db
+nul
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Legacy
+temp_app/
 
 # debug
 npm-debug.log*
