@@ -165,10 +165,10 @@ export function Header() {
                                     className="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-100/80 transition-all"
                                 >
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shadow-md">
-                                        {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                                        {user.user_metadata?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                                     </div>
                                     <span className={`text-sm font-medium ${scrolled || !isHomePage ? 'text-slate-700' : 'text-white/90'}`}>
-                                        {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                                        {user.user_metadata?.username || user.email?.split('@')[0]}
                                     </span>
                                     <ChevronDown className={`w-3.5 h-3.5 ${textColor} transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
                                 </button>
@@ -260,10 +260,10 @@ export function Header() {
                             <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-slate-50 border-b border-slate-100">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold">
-                                        {user.user_metadata?.full_name?.charAt(0) || user.email?.charAt(0).toUpperCase()}
+                                        {user.user_metadata?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <p className="text-sm font-medium text-slate-900">{user.user_metadata?.full_name || '회원'}</p>
+                                        <p className="text-sm font-medium text-slate-900">{user.user_metadata?.username || '회원'}</p>
                                         <p className="text-xs text-slate-500">{user.email}</p>
                                     </div>
                                 </div>

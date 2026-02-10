@@ -17,6 +17,13 @@ export default async function MyPage() {
         redirect('/login');
     }
 
+    // Fetch user profile
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
     // Fetch Course Applications
     const { data: applications } = await supabase
         .from('applications')
@@ -429,7 +436,7 @@ export default async function MyPage() {
                                     <p className="text-sm text-slate-400">비밀번호 변경 및 계정 관리</p>
                                 </div>
                             </div>
-                            <ProfileSettings userEmail={user.email} />
+                            <ProfileSettings user={user} profile={profile} />
                         </div>
                     </TabsContent>
                 </Tabs>
