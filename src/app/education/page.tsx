@@ -1,4 +1,7 @@
-import Link from "next/link";
+'use client'
+
+import { useEffect, useState } from 'react'
+import Link from "next/link"
 import {
   BookOpen,
   Award,
@@ -9,64 +12,53 @@ import {
   Users,
   Clock,
   Star,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+  Loader2,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { EmptyState } from "@/components/ui/empty-state"
+import { createClient } from '@/lib/supabase/client'
 
-const certCourses = [
-  {
-    title: "전기기능사",
-    tags: ["필기/실기", "기초반"],
-    description:
-      "전기 분야 입문을 위한 국가기술자격 과정. 필기 핵심이론 정리부터 실기 배선 실습까지 체계적으로 준비합니다.",
-  },
-  {
-    title: "전기산업기사 / 전기기사",
-    tags: ["국가기술자격", "핵심요약"],
-    description:
-      "출제 빈도 높은 핵심 단원 집중 요약과 기출문제 분석을 통해 합격률을 극대화하는 전략적 커리큘럼입니다.",
-  },
-  {
-    title: "전기기능장",
-    tags: ["마스터", "실기특강"],
-    description:
-      "현장 경험이 풍부한 기능장 출신 강사진의 실기 집중 특강. 작업형 과제 완벽 대비 프로그램입니다.",
-  },
-  {
-    title: "건축전기설비기술사",
-    tags: ["기술사", "논술형"],
-    description:
-      "기술사 논술형 답안 작성법부터 면접 대비까지. 합격생 멘토링과 함께하는 프리미엄 과정입니다.",
-  },
-];
-
-const practicalCourses = [
-  {
-    title: "PLC 제어 실습",
-    tags: ["자동화", "프로그래밍"],
-    description:
-      "LS, Mitsubishi, Siemens 멀티 벤더 PLC 프로그래밍 및 HMI 작화 실습. 현장 적용 가능한 실무 능력을 배양합니다.",
-  },
-  {
-    title: "전력계통 실무",
-    tags: ["계통해석", "ETAP"],
-    description:
-      "ETAP을 활용한 조류 계산, 고장 전류 해석, 보호계전기 정정 및 협조 시뮬레이션 실습 과정입니다.",
-  },
-  {
-    title: "접지/피뢰 시스템 설계",
-    tags: ["안전", "설계"],
-    description:
-      "KEC 및 IEC 62305 표준 기반 공통접지/통합접지 설계와 회전구체법 외부 피뢰 시스템 설계 실무 과정입니다.",
-  },
-  {
-    title: "KEC 실무",
-    tags: ["규정", "법규"],
-    description:
-      "한국전기설비규정(KEC) 주요 조항 해설 및 현장 적용 사례 분석. 설계/시공/감리 실무자를 위한 필수 과정입니다.",
-  },
-];
+interface Course {
+  id: number
+  title: string
+  category: string
+  description: string
+  price: number
+  is_active: boolean
+}
 
 export default function EducationPage() {
+  const [courses, setCourses] = useState<Course[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const supabase = createClient()
+        const { data, error } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_active', true)
+          .order('category', { ascending: true })
+          .order('created_at', { ascending: true })
+
+        if (error) throw error
+        setCourses(data || [])
+      } catch (err) {
+        console.error('Error fetching courses:', err)
+        setError(err instanceof Error ? err.message : 'Failed to fetch courses')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCourses()
+  }, [])
+
+  const certCourses = courses.filter(c => c.category === 'Certification' || c.category === '자격증')
+  const practicalCourses = courses.filter(c => c.category === 'Practical' || c.category === '실무')
+
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -135,89 +127,112 @@ export default function EducationPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            {/* LEFT: 자격증 과정 */}
-            <div>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-orange-100">
-                  <Award className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">자격증 과정</h3>
-                  <p className="text-sm text-slate-500">국가기술자격 취득 대비</p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-5">
-                {certCourses.map((course, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white rounded-2xl p-6 border border-slate-100 border-l-4 border-l-orange-500 card-hover"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h4 className="text-lg font-bold text-slate-900">
-                        {course.title}
-                      </h4>
-                      <CheckCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
-                    </div>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {course.tags.map((tag, tagIdx) => (
-                        <span
-                          key={tagIdx}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {course.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <span className="ml-3 text-slate-600">교육과정을 불러오는 중...</span>
             </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="text-red-600">교육과정을 불러오는데 실패했습니다: {error}</p>
+            </div>
+          ) : courses.length === 0 ? (
+            <EmptyState
+              icon={BookOpen}
+              title="등록된 교육 과정이 없습니다"
+              description="관리자가 곧 교육 과정을 등록할 예정입니다. 교육 문의는 고객센터로 연락해 주세요."
+              action={{
+                label: "문의하기",
+                onClick: () => window.location.href = '/contact'
+              }}
+            />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+              {/* LEFT: 자격증 과정 */}
+              <div>
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-orange-100">
+                    <Award className="h-6 w-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900">자격증 과정</h3>
+                    <p className="text-sm text-slate-500">국가기술자격 취득 대비</p>
+                  </div>
+                </div>
+                {certCourses.length > 0 ? (
+                  <div className="flex flex-col gap-5">
+                    {certCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="bg-white rounded-2xl p-6 border border-slate-100 border-l-4 border-l-orange-500 card-hover"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="text-lg font-bold text-slate-900">
+                            {course.title}
+                          </h4>
+                          <CheckCircle className="h-5 w-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                        </div>
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                          {course.description}
+                        </p>
+                        {course.price > 0 && (
+                          <p className="mt-3 text-sm font-semibold text-orange-600">
+                            {course.price.toLocaleString()}원
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>등록된 자격증 과정이 없습니다</p>
+                  </div>
+                )}
+              </div>
 
-            {/* RIGHT: 실무 전문 과정 */}
-            <div>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100">
-                  <PenTool className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">실무 전문 과정</h3>
-                  <p className="text-sm text-slate-500">현장 적용 중심 실무 역량 강화</p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-5">
-                {practicalCourses.map((course, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white rounded-2xl p-6 border border-slate-100 border-l-4 border-l-blue-500 card-hover"
-                  >
-                    <div className="flex items-start justify-between mb-3">
-                      <h4 className="text-lg font-bold text-slate-900">
-                        {course.title}
-                      </h4>
-                      <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    </div>
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {course.tags.map((tag, tagIdx) => (
-                        <span
-                          key={tagIdx}
-                          className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {course.description}
-                    </p>
+              {/* RIGHT: 실무 전문 과정 */}
+              <div>
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100">
+                    <PenTool className="h-6 w-6 text-blue-600" />
                   </div>
-                ))}
+                  <div>
+                    <h3 className="text-2xl font-bold text-slate-900">실무 전문 과정</h3>
+                    <p className="text-sm text-slate-500">현장 적용 중심 실무 역량 강화</p>
+                  </div>
+                </div>
+                {practicalCourses.length > 0 ? (
+                  <div className="flex flex-col gap-5">
+                    {practicalCourses.map((course) => (
+                      <div
+                        key={course.id}
+                        className="bg-white rounded-2xl p-6 border border-slate-100 border-l-4 border-l-blue-500 card-hover"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h4 className="text-lg font-bold text-slate-900">
+                            {course.title}
+                          </h4>
+                          <CheckCircle className="h-5 w-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                        </div>
+                        <p className="text-sm text-slate-600 leading-relaxed">
+                          {course.description}
+                        </p>
+                        {course.price > 0 && (
+                          <p className="mt-3 text-sm font-semibold text-blue-600">
+                            {course.price.toLocaleString()}원
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <p>등록된 실무 과정이 없습니다</p>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -317,5 +332,5 @@ export default function EducationPage() {
         </div>
       </section>
     </div>
-  );
+  )
 }

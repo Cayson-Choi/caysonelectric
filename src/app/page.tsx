@@ -23,6 +23,7 @@ import {
   Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
 
 /* ──────────────────────────────────────────
    Animated Counter Hook
@@ -109,37 +110,15 @@ const services = [
 ];
 
 /* ──────────────────────────────────────────
-   Featured Courses Data
+   Featured Courses Data (Fetched from Supabase)
    ────────────────────────────────────────── */
-const featuredCourses = [
-  {
-    title: "PLC 프로그래밍 실무",
-    category: "산업자동화",
-    duration: "40시간 (5일)",
-    level: "중급",
-    description:
-      "LS XG5000, Mitsubishi GX Works3 기반 래더 로직 설계부터 HMI 화면 작화까지 현장 실무 중심 교육",
-    badge: "인기",
-  },
-  {
-    title: "KEC 접지/피뢰 설계",
-    category: "피뢰/접지",
-    duration: "24시간 (3일)",
-    level: "고급",
-    description:
-      "한국전기설비규정(KEC) 개정 내용 반영, 공통/통합 접지 시스템 설계 실습 및 사례 분석",
-    badge: "신규",
-  },
-  {
-    title: "전력계통 해석 입문",
-    category: "전력계통",
-    duration: "32시간 (4일)",
-    level: "초급~중급",
-    description:
-      "ETAP 소프트웨어를 활용한 조류 계산, 단락 전류 분석, 보호 협조 시뮬레이션 기초 과정",
-    badge: "모집중",
-  },
-];
+interface Course {
+  id: number;
+  title: string;
+  category: string;
+  description: string;
+  price: number;
+}
 
 /* ──────────────────────────────────────────
    Why Cayson Data
@@ -175,6 +154,32 @@ export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [statsVisible, setStatsVisible] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
+  const [featuredCourses, setFeaturedCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+
+  // Fetch featured courses from Supabase
+  useEffect(() => {
+    async function fetchFeaturedCourses() {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_active', true)
+          .limit(3)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setFeaturedCourses(data || []);
+      } catch (err) {
+        console.error('Error fetching featured courses:', err);
+      } finally {
+        setCoursesLoading(false);
+      }
+    }
+
+    fetchFeaturedCourses();
+  }, []);
 
   // Parallax scroll listener
   useEffect(() => {
@@ -505,104 +510,96 @@ export default function Home() {
       {/* ════════════════════════════════════
           EDUCATION PREVIEW SECTION
           ════════════════════════════════════ */}
-      <section className="py-20 md:py-28 bg-white">
-        <div className="container mx-auto px-6 md:px-12 lg:px-16">
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
-            <div className="animate-on-scroll">
-              <span className="inline-block text-blue-600 font-semibold text-sm uppercase tracking-widest mb-3">
-                Featured Courses
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 section-divider">
-                인기 교육과정
-              </h2>
-              <p className="text-gray-600 text-lg leading-relaxed mt-8 max-w-xl">
-                실무 현장에서 가장 필요로 하는 핵심 기술 교육을 만나보세요.
-              </p>
-            </div>
-            <div className="animate-on-scroll delay-200">
-              <Button
-                asChild
-                variant="outline"
-                className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold"
-              >
-                <Link href="/education">
-                  전체 교육과정 보기
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-
-          {/* Course Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {featuredCourses.map((course, index) => {
-              const delayClass = `delay-${(index + 1) * 100}`;
-              const badgeColor: Record<string, string> = {
-                "인기": "bg-orange-100 text-orange-700",
-                "신규": "bg-blue-100 text-blue-700",
-                "모집중": "bg-green-100 text-green-700",
-              };
-              return (
-                <div
-                  key={course.title}
-                  className={`animate-on-scroll ${delayClass}`}
+      {!coursesLoading && featuredCourses.length > 0 && (
+        <section className="py-20 md:py-28 bg-white">
+          <div className="container mx-auto px-6 md:px-12 lg:px-16">
+            {/* Section Header */}
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-16 gap-6">
+              <div className="animate-on-scroll">
+                <span className="inline-block text-blue-600 font-semibold text-sm uppercase tracking-widest mb-3">
+                  Featured Courses
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 section-divider">
+                  최신 교육과정
+                </h2>
+                <p className="text-gray-600 text-lg leading-relaxed mt-8 max-w-xl">
+                  실무 현장에서 가장 필요로 하는 핵심 기술 교육을 만나보세요.
+                </p>
+              </div>
+              <div className="animate-on-scroll delay-200">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-semibold"
                 >
-                  <div className="card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden h-full hover:border-blue-200 group">
-                    {/* Card Top Accent */}
-                    <div className="h-1.5 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-400 group-hover:from-blue-500 group-hover:via-blue-600 group-hover:to-cyan-500 transition-all" />
+                  <Link href="/education">
+                    전체 교육과정 보기
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
 
-                    <div className="p-8">
-                      {/* Badge + Category */}
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
-                          {course.category}
-                        </span>
-                        <span
-                          className={`text-xs font-bold px-2.5 py-1 rounded-full ${badgeColor[course.badge] || "bg-gray-100 text-gray-600"}`}
+            {/* Course Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+              {featuredCourses.map((course, index) => {
+                const delayClass = `delay-${(index + 1) * 100}`;
+                const categoryBadgeColor =
+                  course.category === "자격증" || course.category === "Certification"
+                    ? "bg-orange-100 text-orange-700"
+                    : "bg-blue-100 text-blue-700";
+
+                return (
+                  <div
+                    key={course.id}
+                    className={`animate-on-scroll ${delayClass}`}
+                  >
+                    <div className="card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden h-full hover:border-blue-200 group">
+                      {/* Card Top Accent */}
+                      <div className="h-1.5 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-400 group-hover:from-blue-500 group-hover:via-blue-600 group-hover:to-cyan-500 transition-all" />
+
+                      <div className="p-8">
+                        {/* Category Badge */}
+                        <div className="flex items-center justify-between mb-4">
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${categoryBadgeColor}`}>
+                            {course.category === "Certification" ? "자격증" : course.category === "Practical" ? "실무" : course.category}
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
+                          {course.title}
+                        </h3>
+
+                        {/* Description */}
+                        <p className="text-gray-600 text-sm leading-relaxed mb-6 line-clamp-3">
+                          {course.description}
+                        </p>
+
+                        {/* Price */}
+                        {course.price > 0 && (
+                          <div className="flex items-center gap-2 text-sm font-semibold text-blue-600 mb-6">
+                            {course.price.toLocaleString()}원
+                          </div>
+                        )}
+
+                        {/* Action */}
+                        <Link
+                          href="/education"
+                          className="inline-flex items-center text-blue-600 text-sm font-semibold hover:text-blue-700 transition-colors"
                         >
-                          {course.badge}
-                        </span>
+                          과정 상세보기
+                          <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                        </Link>
                       </div>
-
-                      {/* Title */}
-                      <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">
-                        {course.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p className="text-gray-600 text-sm leading-relaxed mb-6">
-                        {course.description}
-                      </p>
-
-                      {/* Meta Info */}
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-500 mb-6">
-                        <div className="flex items-center gap-1.5">
-                          <Clock className="h-3.5 w-3.5" />
-                          <span>{course.duration}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <TrendingUp className="h-3.5 w-3.5" />
-                          <span>{course.level}</span>
-                        </div>
-                      </div>
-
-                      {/* Action */}
-                      <Link
-                        href="/education"
-                        className="inline-flex items-center text-blue-600 text-sm font-semibold hover:text-blue-700 transition-colors"
-                      >
-                        과정 상세보기
-                        <ChevronRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </Link>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ════════════════════════════════════
           BOTTOM CTA SECTION

@@ -9,6 +9,7 @@ import {
   CheckCircle,
   Users,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,76 +22,27 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { EmptyState } from "@/components/ui/empty-state";
 import { createClient } from "@/lib/supabase/client";
 import { User } from "@supabase/supabase-js";
 
-const schedules = [
-  {
-    id: 1,
-    course: "전기기능사 필기 특강",
-    category: "자격증",
-    date: "2026-03-02",
-    time: "19:00 - 22:00",
-    duration: "4주",
-    status: "recruiting",
-    capacity: "20명",
-    enrolled: 12,
-    location: "제1강의실",
-    price: "350,000원",
-  },
-  {
-    id: 2,
-    course: "PLC 제어 기초 실습",
-    category: "실무",
-    date: "2026-03-07",
-    time: "10:00 - 17:00 (토)",
-    duration: "8주",
-    status: "recruiting",
-    capacity: "15명",
-    enrolled: 8,
-    location: "PLC 실습실",
-    price: "580,000원",
-  },
-  {
-    id: 3,
-    course: "KEC 규정 실무 해설",
-    category: "실무",
-    date: "2026-03-14",
-    time: "14:00 - 18:00 (토)",
-    duration: "1일",
-    status: "closing-soon",
-    capacity: "30명",
-    enrolled: 27,
-    location: "대강당",
-    price: "120,000원",
-  },
-  {
-    id: 4,
-    course: "건축전기설비기술사 정규반",
-    category: "자격증",
-    date: "2026-03-09",
-    time: "19:00 - 22:00",
-    duration: "12주",
-    status: "recruiting",
-    capacity: "10명",
-    enrolled: 4,
-    location: "제2강의실",
-    price: "1,200,000원",
-  },
-  {
-    id: 5,
-    course: "전기기사 실기 핵심요약",
-    category: "자격증",
-    date: "2026-02-24",
-    time: "19:00 - 22:00",
-    duration: "6주",
-    status: "closed",
-    capacity: "25명",
-    enrolled: 25,
-    location: "제1강의실",
-    price: "450,000원",
-  },
-];
+interface CourseSession {
+  id: number;
+  course_id: number;
+  start_date: string;
+  end_date: string;
+  time_info: string;
+  capacity: number;
+  location: string;
+  status: string;
+  courses: {
+    id: number;
+    title: string;
+    category: string;
+    description: string;
+    price: number;
+  };
+}
 
 function getStatusBadge(status: string) {
   switch (status) {
@@ -115,6 +67,7 @@ function getStatusBadge(status: string) {
         </span>
       );
     case "closed":
+    case "finished":
       return (
         <span className="badge-closed inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold">
           마감됨
@@ -126,32 +79,41 @@ function getStatusBadge(status: string) {
 }
 
 function getCategoryBadge(category: string) {
-  if (category === "자격증") {
+  if (category === "자격증" || category === "Certification") {
     return (
       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-50 text-orange-700 border border-orange-200">
-        {category}
+        자격증
       </span>
     );
   }
   return (
     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-      {category}
+      실무
     </span>
   );
 }
 
-function getCapacityNumber(capacity: string) {
-  return parseInt(capacity.replace("명", ""), 10);
+function calculateDuration(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0 || diffDays === 1) return "1일";
+  if (diffDays <= 7) return `${diffDays}일`;
+  const weeks = Math.ceil(diffDays / 7);
+  return `${weeks}주`;
 }
 
 export default function SchedulePage() {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<string>("전체");
+  const [sessions, setSessions] = useState<CourseSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState<
-    (typeof schedules)[0] | null
-  >(null);
+  const [selectedSession, setSelectedSession] = useState<CourseSession | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     name: "",
@@ -174,38 +136,79 @@ export default function SchedulePage() {
     checkUser();
   }, []);
 
+  useEffect(() => {
+    async function fetchSessions() {
+      try {
+        const supabase = createClient();
+        const today = new Date().toISOString().split('T')[0];
+
+        const { data, error } = await supabase
+          .from('course_sessions')
+          .select(`
+            *,
+            courses:course_id (
+              id,
+              title,
+              category,
+              description,
+              price
+            )
+          `)
+          .gte('start_date', today)
+          .order('start_date', { ascending: true });
+
+        if (error) throw error;
+
+        // Filter out sessions without valid course data
+        const validSessions = (data || []).filter(session => session.courses) as CourseSession[];
+        setSessions(validSessions);
+      } catch (err) {
+        console.error('Error fetching sessions:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch sessions');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchSessions();
+  }, []);
+
   const filters = ["전체", "자격증", "실무"];
 
-  const filteredSchedules =
-    activeFilter === "전체"
-      ? schedules
-      : schedules.filter((s) => s.category === activeFilter);
+  const filteredSessions = activeFilter === "전체"
+    ? sessions
+    : sessions.filter((s) => {
+        const category = s.courses.category;
+        if (activeFilter === "자격증") {
+          return category === "자격증" || category === "Certification";
+        }
+        return category === "실무" || category === "Practical";
+      });
 
-  const handleApplyClick = (schedule: (typeof schedules)[0]) => {
+  const handleApplyClick = (session: CourseSession) => {
     if (!user) {
       router.push("/login");
       return;
     }
-    setSelectedCourse(schedule);
+    setSelectedSession(session);
     setSubmitSuccess(false);
     setDialogOpen(true);
   };
 
   const handleApplySubmit = async () => {
-    if (!selectedCourse || !formData.name || !formData.phone) return;
+    if (!selectedSession || !formData.name || !formData.phone) return;
 
     setSubmitting(true);
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("book_orders").insert({
+      const { error } = await supabase.from("applications").insert({
+        session_id: selectedSession.id,
         user_id: user?.id,
-        user_email: formData.email,
-        user_name: formData.name,
-        user_phone: formData.phone,
-        course_name: selectedCourse.course,
-        course_date: selectedCourse.date,
-        course_price: selectedCourse.price,
-        status: "pending",
+        applicant_name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        amount: selectedSession.courses.price,
+        status: "pending_payment",
       });
 
       if (error) throw error;
@@ -260,115 +263,120 @@ export default function SchedulePage() {
             ))}
           </div>
 
-          {/* Course Cards */}
-          <div className="flex flex-col gap-6">
-            {filteredSchedules.map((schedule) => {
-              const capacityNum = getCapacityNumber(schedule.capacity);
-              const progressPercent = Math.round(
-                (schedule.enrolled / capacityNum) * 100
-              );
-              const isClosed = schedule.status === "closed";
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <span className="ml-3 text-slate-600">교육 일정을 불러오는 중...</span>
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="text-red-600">교육 일정을 불러오는데 실패했습니다: {error}</p>
+            </div>
+          ) : sessions.length === 0 ? (
+            <EmptyState
+              icon={Calendar}
+              title="등록된 교육 일정이 없습니다"
+              description="관리자가 곧 교육 일정을 등록할 예정입니다. 교육 문의는 고객센터로 연락해 주세요."
+              action={{
+                label: "문의하기",
+                onClick: () => window.location.href = '/contact'
+              }}
+            />
+          ) : filteredSessions.length === 0 ? (
+            <div className="text-center py-16 text-slate-400">
+              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-40" />
+              <p className="text-lg font-medium">
+                해당 카테고리의 교육 일정이 없습니다.
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-6">
+              {filteredSessions.map((session) => {
+                const isClosed = session.status === "closed" || session.status === "finished";
+                const duration = calculateDuration(session.start_date, session.end_date);
 
-              return (
-                <div
-                  key={schedule.id}
-                  className={`bg-white rounded-2xl p-6 md:p-8 border border-slate-100 card-hover ${
-                    isClosed ? "opacity-70" : ""
-                  }`}
-                >
-                  {/* Top Row: Badges */}
-                  <div className="flex items-center gap-3 mb-4">
-                    {getStatusBadge(schedule.status)}
-                    {getCategoryBadge(schedule.category)}
-                  </div>
+                return (
+                  <div
+                    key={session.id}
+                    className={`bg-white rounded-2xl p-6 md:p-8 border border-slate-100 card-hover ${
+                      isClosed ? "opacity-70" : ""
+                    }`}
+                  >
+                    {/* Top Row: Badges */}
+                    <div className="flex items-center gap-3 mb-4">
+                      {getStatusBadge(session.status)}
+                      {getCategoryBadge(session.courses.category)}
+                    </div>
 
-                  {/* Course Title & Meta */}
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-2">
-                        {schedule.course}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
-                        <span className="inline-flex items-center gap-1.5 font-medium">
-                          <Clock className="h-4 w-4" />
-                          {schedule.duration}
-                        </span>
-                        <span className="font-bold text-slate-900 text-base">
-                          {schedule.price}
-                        </span>
+                    {/* Course Title & Meta */}
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-2">
+                          {session.courses.title}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
+                          <span className="inline-flex items-center gap-1.5 font-medium">
+                            <Clock className="h-4 w-4" />
+                            {duration}
+                          </span>
+                          {session.courses.price > 0 && (
+                            <span className="font-bold text-slate-900 text-base">
+                              {session.courses.price.toLocaleString()}원
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Apply Button */}
+                      <div className="flex-shrink-0">
+                        <Button
+                          onClick={() => handleApplyClick(session)}
+                          disabled={isClosed}
+                          className={`h-11 px-6 rounded-lg text-sm font-bold transition-all ${
+                            isClosed
+                              ? "bg-slate-200 text-slate-400 cursor-not-allowed"
+                              : session.status === "closing-soon"
+                                ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-900/20 hover:translate-y-[-2px]"
+                                : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-900/20 hover:translate-y-[-2px]"
+                          }`}
+                        >
+                          {isClosed ? "마감됨" : "수강신청"}
+                          {!isClosed && <ArrowRight className="ml-1.5 h-4 w-4" />}
+                        </Button>
                       </div>
                     </div>
 
-                    {/* Apply Button */}
-                    <div className="flex-shrink-0">
-                      <Button
-                        onClick={() => handleApplyClick(schedule)}
-                        disabled={isClosed}
-                        className={`h-11 px-6 rounded-lg text-sm font-bold transition-all ${
-                          isClosed
-                            ? "bg-slate-200 text-slate-400 cursor-not-allowed"
-                            : schedule.status === "closing-soon"
-                              ? "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-900/20 hover:translate-y-[-2px]"
-                              : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-900/20 hover:translate-y-[-2px]"
-                        }`}
-                      >
-                        {isClosed ? "마감됨" : "수강신청"}
-                        {!isClosed && <ArrowRight className="ml-1.5 h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="mb-5">
-                    <div className="flex items-center justify-between text-xs text-slate-500 mb-1.5">
-                      <span className="flex items-center gap-1">
-                        <Users className="h-3.5 w-3.5" />
-                        {schedule.enrolled}명 / {schedule.capacity}
+                    {/* Info Row */}
+                    <div className="flex flex-wrap items-center gap-5 pt-4 border-t border-slate-100 text-sm text-slate-500">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Calendar className="h-4 w-4 text-slate-400" />
+                        {session.start_date}
+                        {session.start_date !== session.end_date && ` ~ ${session.end_date}`}
                       </span>
-                      <span className="font-medium">{progressPercent}%</span>
-                    </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          progressPercent >= 90
-                            ? "bg-gradient-to-r from-orange-400 to-red-500"
-                            : progressPercent >= 50
-                              ? "bg-gradient-to-r from-blue-400 to-blue-600"
-                              : "bg-gradient-to-r from-green-400 to-emerald-500"
-                        }`}
-                        style={{ width: `${progressPercent}%` }}
-                      />
+                      {session.time_info && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Clock className="h-4 w-4 text-slate-400" />
+                          {session.time_info}
+                        </span>
+                      )}
+                      {session.location && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4 text-slate-400" />
+                          {session.location}
+                        </span>
+                      )}
+                      {session.capacity && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Users className="h-4 w-4 text-slate-400" />
+                          정원 {session.capacity}명
+                        </span>
+                      )}
                     </div>
                   </div>
-
-                  {/* Info Row */}
-                  <div className="flex flex-wrap items-center gap-5 pt-4 border-t border-slate-100 text-sm text-slate-500">
-                    <span className="inline-flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-slate-400" />
-                      {schedule.date}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <Clock className="h-4 w-4 text-slate-400" />
-                      {schedule.time}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5">
-                      <MapPin className="h-4 w-4 text-slate-400" />
-                      {schedule.location}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-
-            {filteredSchedules.length === 0 && (
-              <div className="text-center py-16 text-slate-400">
-                <Calendar className="h-12 w-12 mx-auto mb-4 opacity-40" />
-                <p className="text-lg font-medium">
-                  해당 카테고리의 교육 일정이 없습니다.
-                </p>
-              </div>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -388,7 +396,7 @@ export default function SchedulePage() {
                 </DialogTitle>
                 <DialogDescription className="text-center">
                   <strong className="text-slate-900">
-                    {selectedCourse?.course}
+                    {selectedSession?.courses.title}
                   </strong>{" "}
                   수강 신청이 정상적으로 접수되었습니다.
                   <br />
@@ -410,33 +418,37 @@ export default function SchedulePage() {
                 <DialogTitle className="text-xl">수강 신청</DialogTitle>
                 <DialogDescription>
                   <strong className="text-slate-900">
-                    {selectedCourse?.course}
+                    {selectedSession?.courses.title}
                   </strong>{" "}
                   과정에 신청합니다. 아래 정보를 입력해 주세요.
                 </DialogDescription>
               </DialogHeader>
 
               {/* Course Summary */}
-              {selectedCourse && (
+              {selectedSession && (
                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 text-sm space-y-1.5">
                   <div className="flex justify-between">
                     <span className="text-slate-500">개강일</span>
                     <span className="font-medium text-slate-900">
-                      {selectedCourse.date}
+                      {selectedSession.start_date}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">시간</span>
-                    <span className="font-medium text-slate-900">
-                      {selectedCourse.time}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">수강료</span>
-                    <span className="font-bold text-blue-600">
-                      {selectedCourse.price}
-                    </span>
-                  </div>
+                  {selectedSession.time_info && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">시간</span>
+                      <span className="font-medium text-slate-900">
+                        {selectedSession.time_info}
+                      </span>
+                    </div>
+                  )}
+                  {selectedSession.courses.price > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">수강료</span>
+                      <span className="font-bold text-blue-600">
+                        {selectedSession.courses.price.toLocaleString()}원
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
 
