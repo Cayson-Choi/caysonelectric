@@ -54,6 +54,15 @@ export function Header() {
         return () => subscription.unsubscribe();
     }, []);
 
+    // Re-fetch user when pathname changes (e.g., after login redirect)
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        getUser();
+    }, [pathname]);
+
     useEffect(() => {
         setMobileMenuOpen(false);
         setServiceDropdown(false);
