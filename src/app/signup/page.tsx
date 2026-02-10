@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { signup } from '../auth/actions'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-export default function SignupPage() {
+function SignupForm() {
   const searchParams = useSearchParams()
   const errorMessage = searchParams.get('error')
 
@@ -339,5 +339,13 @@ export default function SignupPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   )
 }
