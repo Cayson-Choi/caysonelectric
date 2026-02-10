@@ -99,6 +99,15 @@ export function Header() {
 
                     {/* Desktop Navigation */}
                     <div className="hidden lg:flex lg:gap-x-1">
+                        {user && (
+                            <Link
+                                href="/mypage"
+                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${textColor} ${hoverColor} hover:bg-blue-50/80 ${pathname === '/mypage' ? 'text-blue-600 bg-blue-50/60' : ''
+                                    }`}
+                            >
+                                나의 페이지
+                            </Link>
+                        )}
                         {navigation.map((item) => (
                             item.children ? (
                                 <div key={item.name} className="relative group"
@@ -254,6 +263,18 @@ export function Header() {
 
                         {/* Mobile Navigation */}
                         <div className="px-4 py-4 space-y-1">
+                            {user && (
+                                <Link
+                                    href="/mypage"
+                                    className={`block px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${pathname === '/mypage'
+                                        ? 'text-blue-600 bg-blue-50'
+                                        : 'text-slate-700 hover:text-blue-600 hover:bg-blue-50'
+                                        }`}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                >
+                                    나의 페이지
+                                </Link>
+                            )}
                             {navigation.map((item) => (
                                 item.children ? (
                                     <div key={item.name}>

@@ -20,21 +20,27 @@ export async function login(formData: FormData) {
         password,
     }
 
-    const { error } = await supabase.auth.signInWithPassword(data)
+    const { error, data: loginData } = await supabase.auth.signInWithPassword(data)
 
     if (error) {
         // Provide user-friendly error messages
         if (error.message.includes('Email not confirmed')) {
             redirect('/login?error=' + encodeURIComponent('이메일 확인이 필요합니다. 받은 이메일의 확인 링크를 클릭해주세요.'))
-        } else if (error.message.includes('Invalid login credentials')) {
-            redirect('/login?error=' + encodeURIComponent('이메일 또는 비밀번호가 올바르지 않습니다.'))
+        } else if (error.message.includes('Invalid login credentials') || error.message.includes('Invalid')) {
+            // User not found - suggest signup
+            redirect('/login?error=' + encodeURIComponent('등록되지 않은 계정이거나 비밀번호가 올바르지 않습니다.') + '&signup=true')
         } else {
             redirect('/login?error=' + encodeURIComponent(error.message))
         }
     }
 
+    // Check if user exists
+    if (!loginData.user) {
+        redirect('/login?error=' + encodeURIComponent('로그인에 실패했습니다.'))
+    }
+
     revalidatePath('/', 'layout')
-    redirect('/')
+    redirect('/mypage')
 }
 
 export async function signup(formData: FormData) {

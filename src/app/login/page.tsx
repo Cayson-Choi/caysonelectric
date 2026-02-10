@@ -11,6 +11,7 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const message = searchParams.get('message')
   const error = searchParams.get('error')
+  const shouldSignup = searchParams.get('signup')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 flex items-center justify-center px-4 py-12">
@@ -37,10 +38,16 @@ function LoginForm() {
               <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div className="text-sm text-red-800">
                 <p className="font-medium mb-1">{error}</p>
-                {error.includes('Email not confirmed') && (
-                  <p className="text-xs">
-                    이메일 확인이 필요합니다. 받은 이메일의 확인 링크를 클릭해주세요.
-                  </p>
+                {shouldSignup && (
+                  <div className="mt-3 pt-3 border-t border-red-200">
+                    <p className="text-xs mb-2">아직 회원이 아니신가요?</p>
+                    <Link
+                      href="/signup"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      회원가입하기 →
+                    </Link>
+                  </div>
                 )}
               </div>
             </div>
