@@ -84,7 +84,7 @@ export function Header() {
             ? 'bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-transparent backdrop-blur-sm'
             : 'bg-white/95 backdrop-blur-xl border-b border-slate-100';
 
-    const textColor = scrolled || !isHomePage ? 'text-slate-700' : 'text-white drop-shadow-md';
+    const textColor = scrolled || !isHomePage ? 'text-slate-900 font-semibold' : 'text-white font-medium drop-shadow-md';
     const logoColor = scrolled || !isHomePage ? 'text-slate-900' : 'text-white';
     const hoverColor = 'hover:text-blue-600';
 
@@ -100,8 +100,8 @@ export function Header() {
                                     <span className="text-white font-black text-lg">C</span>
                                 </div>
                             </div>
-                            <span className={`text-xl font-bold tracking-tight ml-2 transition-colors ${logoColor} drop-shadow-md`}>
-                                Cayson <span className="text-blue-500 drop-shadow-none">Electric</span>
+                            <span className={`text-xl font-bold tracking-tight ml-2 transition-colors ${logoColor} drop-shadow-sm`}>
+                                Cayson <span className="text-blue-600 drop-shadow-none">Electric</span>
                             </span>
                         </Link>
                     </div>
@@ -114,7 +114,7 @@ export function Header() {
                                     onMouseEnter={() => setServiceDropdown(true)}
                                     onMouseLeave={() => setServiceDropdown(false)}
                                 >
-                                    <button className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1 ${textColor} ${hoverColor} hover:bg-blue-50/80`}>
+                                    <button className={`px-4 py-2 rounded-lg text-sm transition-all flex items-center gap-1 ${textColor} ${hoverColor} hover:bg-blue-50/80`}>
                                         {item.name}
                                         <ChevronDown className={`w-3.5 h-3.5 transition-transform ${serviceDropdown ? 'rotate-180' : ''}`} />
                                     </button>
@@ -138,7 +138,7 @@ export function Header() {
                                 <Link
                                     key={item.name}
                                     href={item.href}
-                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${textColor} ${hoverColor} hover:bg-blue-50/80 ${pathname === item.href ? 'text-blue-600 bg-blue-50/60' : ''
+                                    className={`px-4 py-2 rounded-lg text-sm transition-all ${textColor} ${hoverColor} hover:bg-blue-50/80 ${pathname === item.href ? 'text-blue-600 bg-blue-50/60' : ''
                                         }`}
                                 >
                                     {item.name}
@@ -152,7 +152,7 @@ export function Header() {
                         {user && (
                             <Link
                                 href="/mypage"
-                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${textColor} ${hoverColor} hover:bg-blue-50/80 ${pathname === '/mypage' ? 'text-blue-600 bg-blue-50/60' : ''
+                                className={`px-4 py-2 rounded-lg text-sm transition-all ${textColor} ${hoverColor} hover:bg-blue-50/80 ${pathname === '/mypage' ? 'text-blue-600 bg-blue-50/60' : ''
                                     }`}
                             >
                                 나의 페이지
@@ -167,7 +167,7 @@ export function Header() {
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shadow-md">
                                         {user.user_metadata?.username?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
                                     </div>
-                                    <span className={`text-sm font-medium ${scrolled || !isHomePage ? 'text-slate-700' : 'text-white/90'}`}>
+                                    <span className={`text-sm ${scrolled || !isHomePage ? 'text-slate-900 font-semibold' : 'text-white/90 font-medium'}`}>
                                         {user.user_metadata?.username || user.email?.split('@')[0]}
                                     </span>
                                     <ChevronDown className={`w-3.5 h-3.5 ${textColor} transition-transform ${userMenuOpen ? 'rotate-180' : ''}`} />
